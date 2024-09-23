@@ -1,55 +1,35 @@
-import discord
-from discord.ext import commands
-import certifi
-import os
+#thsese are imports that you need in order to properly web scrape websites
+#importing BeautifulSoup so we can use it
 from bs4 import BeautifulSoup
+
+#Importing Selenium so we can use it
 from selenium.webdriver.common.by import By
 from selenium import webdriver
-
-
-
-os.environ["SSL_CERT_FILE"] = certifi.where()
-
-intents = discord.Intents.all()
-
-client = commands.Bot(command_prefix = '!', intents=intents) 
 
 @client.command()
 async def scrape_patch_notes(ctx):
     # Initialize Chrome WebDriver
     driver = webdriver.Chrome()
 
-    # Navigate to the Valorant news page
-    driver.get('https://playvalorant.com/en-us/news/game-updates/')
+    #insert the web page you want to scrape within the partenthese
+    driver.get('page url')
 
     # Wait for dynamic content to load
     driver.implicitly_wait(5)
 
     # Get the HTML content after the page is fully loaded
+    #HTML has differnet kinds of content such as a <div>, <container>, <header>, etc and we need to load all of this from the website
     html_content = driver.page_source
 
-    # Parse the HTML content with BeautifulSoup
+    # Parse the HTML content with BeautifulSoup, not sure if this is required but this is what I used in my scraping
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    #this finds the <a> tag with this class and gets the first href
-    specific_div = driver.find_element(By.CLASS_NAME, 'ContentListingCard-module--contentListingCard--JqMck')
+    #here we have a variable that uses selenium to find a specific element by the class name of that element 
+    specific_div = driver.find_element(By.CLASS_NAME, 'insert class name here')
 
-    # Get the href of the most recent news article
-    recent_href = specific_div.get_attribute('href')
 
-    # Navigate to the most recent news article
-    driver.get(recent_href)
-
-    # Wait for the new page to load
-    driver.implicitly_wait(10)
-
-    # Get the HTML content of the new page
-    new_page_content = driver.page_source
-
-    # Parse the new page HTML with BeautifulSoup
-    new_page_soup = BeautifulSoup(new_page_content, 'html.parser')
-
-    # Retrieve all text content from the div containing the article text
+    #The variable finds the div from the specified link and find the specific class within that div, and then retrieves the
+    #text from that div, which is going to be the review in this case
     div_in_href = new_page_soup.find('div', {'class': 'sectionWrapper NewsArticleContent-module--articleSectionWrapper--a5tPH'})
     text_content = div_in_href.get_text()
 
@@ -57,30 +37,6 @@ async def scrape_patch_notes(ctx):
     # Close the WebDriver
     driver.quit()
 
-    chunks = [text_content[i:i + 2000] for i in range(0, len(text_content), 2000)]
-
-    # Send each chunk as a separate message to the Discord channel
-    for chunk in chunks:
-        await ctx.send(chunk)
     
-
-
-
-@client.event
-async def on_ready():
-    print("The bot is ready for use")
-    print("------------------------")
-
-
-@client.command()
-async def hello(ctx):
-    await ctx.send("hello user")
-
-@client.command()
-async def patchnotes(ctx):
-     await scrape_patch_notes(ctx.channel)
- 
-
-
-
-client.run('insert API key') 
+#This is just to web scrape and actually retrieve the content, after we retrieve the content we still have to
+#manipulate the data but I'm sure there is a way to do that whether it be with pandas for visual, or the NLTK library for sentiment analysis
