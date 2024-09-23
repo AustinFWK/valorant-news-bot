@@ -6,8 +6,7 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 
-@client.command()
-async def scrape_patch_notes(ctx):
+
     # Initialize Chrome WebDriver
     driver = webdriver.Chrome()
 
