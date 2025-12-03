@@ -1,4 +1,4 @@
-this bot is currently being hosted on AWS, but you are able to host it on your local machine through these steps
+How to run locally:
 
 1. ensure that you have all python packages installed especially discord.py
 2. go to discord developer portal and create a new application
