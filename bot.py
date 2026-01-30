@@ -31,7 +31,12 @@ async def patchnotes(ctx):
     """Fetch and display the latest Valorant patch notes."""
 
     try:
-        text_content, article_url = get_latest_patch_notes()
+        text_content, article_url, content_type = get_latest_patch_notes()
+
+        if content_type == 'video':
+            await ctx.send(f"🔗 Latest video: {article_url}")
+            return
+
         chunks = smart_chunk(text_content)
 
         for chunk in chunks:
