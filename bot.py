@@ -1,9 +1,12 @@
 import discord
-from discord.ext import commands
+import datetime
+import asyncio
+from discord.ext import commands, tasks
 from config import DISCORD_TOKEN, COMMAND_PREFIX
 from valorant.scraper import get_latest_patch_notes
 from valorant.formatter import smart_chunk
-from storage import set_channel, get_channel
+from storage import get_last_article, set_channel, get_channel, set_last_article
+
 
 
 # Bot setup
@@ -17,6 +20,8 @@ client = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 async def on_ready():
     print("The bot is ready for use")
     print("------------------------")
+    daily_check.start()
+    tuesday_patch_notes_check.start()
 
 
 # --- Commands ---
@@ -78,6 +83,81 @@ async def patchnotes(ctx):
 
     except Exception as e:
         await ctx.send(f"Error fetching patch notes: {str(e)}")
+
+# --- Background Tasks ---
+
+def is_patch_notes_window():
+    """ Check if the current time is within the patch notes posting window (Tuesdays 8 AM - 12 PM EST). """
+   # Get current time in EST                                                                                                                                                                                                                     
+    utc_now = datetime.datetime.now(datetime.timezone.utc)           
+    #change hours=-5 to hours=-4 for daylight savings time                                                                                                                                                                             
+    est_offset = datetime.timedelta(hours=-5)  # EST is UTC-5                                                                                                                                                                                     
+    est_now = utc_now + est_offset 
+
+    is_tuesday = est_now.weekday() == 1  # Tuesday is 1
+    is_patch_hours = 8 <= est_now.hour < 12
+
+    return is_tuesday and is_patch_hours
+
+@tasks.loop(hours=24)
+async def daily_check():
+    if is_patch_notes_window():
+        return
+    
+    await do_valorant_check()
+
+@tasks.loop(minutes=15)
+async def tuesday_patch_notes_check():
+    """ Frequent checks during patch notes window. """
+    if not is_patch_notes_window():
+        return
+    await do_valorant_check()
+
+async def do_valorant_check():
+    """ Shared logic for checking and posting Valorant patch notes. """
+
+    current_url = get_latest_patch_notes()
+    last_url = get_last_article('valorant')
+
+    if current_url == last_url:
+        return # No new article
+    
+   
+    set_last_article('valorant', current_url)
+
+    if last_url is None:
+        print(f"initialized tracking with {current_url}")
+        return # First run, don't post
+    
+    text_content, article_url, content_type = get_latest_patch_notes()
+
+    for guild in client.guilds:
+        channel_id = get_channel(guild.id, 'valorant')
+        if channel_id is None:
+            continue
+
+        channel = client.get_channel(channel_id)
+        if not channel:
+            continue
+
+        if content_type == 'video':
+            await channel.send(f"🔗 New Valorant video posted! : {article_url}")
+        else:
+            chunks = smart_chunk(text_content)
+
+            for chunk in chunks:
+                await channel.send(chunk)
+
+            await channel.send(f"\n\n🔗 Full article: {article_url}")
+
+
+
+@daily_check.before_loop
+@tuesday_patch_notes_check.before_loop
+async def before_checks():
+    await client.wait_until_ready()
+
+        
 
 
 # --- Run ---
