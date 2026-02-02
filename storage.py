@@ -16,24 +16,24 @@ def save_config(config):
     with open(STORAGE_FILE, 'w') as f:
         json.dump(config, f, indent=2)
 
-def set_channel(server_id, game, channel_id):
-    """Set the channel ID for a specific game in a server."""
+def set_channel(guild_id, game, channel_id):
+    """Set the channel ID for a specific game in a guild."""
     config = load_config()
 
-    #set server id if not present
-    server_key = str(server_id)
-    if server_key not in config:
-        config[server_key] = {}
+    #set guild id if not present
+    guild_key = str(guild_id)
+    if guild_key not in config:
+        config[guild_key] = {}
     
-    config[server_key][game] = channel_id
+    config[guild_key][game] = channel_id
     save_config(config)
 
-def get_channel(server_id, game):
-    """Get the channel ID for a specific game in a server."""
+def get_channel(guild_id, game):
+    """Get the channel ID for a specific game in a guild."""
     config = load_config()
-    server_key = str(server_id)
+    guild_key = str(guild_id)
 
-    if server_key not in config:
+    if guild_key not in config:
         return None
 
-    return config[server_key].get(game)
+    return config[guild_key].get(game)
