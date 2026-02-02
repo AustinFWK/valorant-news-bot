@@ -1,11 +1,17 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.chrome.options import Options
 from config import (
     VALORANT_NEWS_URL,
     ARTICLE_LINK_SELECTOR,
     ARTICLE_CONTENT_SELECTOR
 )
+
+options = Options()                                                                                                                                                                                                                               
+options.add_argument('--headless')                                                                                                                                                                                                                
+options.add_argument('--no-sandbox')                                                                                                                                                                                                              
+options.add_argument('--disable-dev-shm-usage')
 
 def is_youtube_link(url):
     """Check if a given URL is a YouTube link."""
@@ -14,7 +20,7 @@ def is_youtube_link(url):
 
 def get_latest_patch_notes():
     """Scrape the latest patch notes from Valorant's website."""
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(options=options)
 
     try:
         # Navigate to the news page
@@ -46,7 +52,7 @@ def get_latest_patch_notes():
 
 def get_latest_article_url():
     """Get just the URL of the latest article (for checking updates)."""
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(options=options)
 
     try:
         driver.get(VALORANT_NEWS_URL)
