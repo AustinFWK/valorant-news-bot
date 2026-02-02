@@ -10,3 +10,5 @@ How to run locally:
 8. NOTICE:
 9. THE VALORANT NEWS WEBSITE CHANGES FREQUENTLY, I have already ran into an issue where the class name has changed, so factors like class name and the overall HTML structure of the news website is going to change and will need to be monitored every so often in the event that you are trying to run this bot. The reason being is because the bot is finding and scraping the information via class names
 10. after you do this, the discord bot should be running and you can use the /hello so the bot says hello, and use /patchnotes to activate the scraping process
+
+NOTE: in bot.py, change hours=-5 to hours=-4 for daylight savings
