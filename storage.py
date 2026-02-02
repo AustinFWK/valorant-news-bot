@@ -2,6 +2,7 @@ import os
 import json
 
 STORAGE_FILE = "channel_config.json"
+LAST_ARTICLE = "last_article.json"
 
 def load_config():
     """Load the channel configuration from a JSON file."""
@@ -37,3 +38,27 @@ def get_channel(guild_id, game):
         return None
 
     return config[guild_key].get(game)
+
+def get_last_article(game):
+    """Get the last stored article URL for a specific game."""
+    if not os.path.exists(LAST_ARTICLE):
+        return None
+
+    with open(LAST_ARTICLE, 'r') as f:
+        data = json.load(f)
+    
+    return data.get(game)
+
+def set_last_article(game, article_url):
+    """Set the last stored article URL for a specific game."""
+    
+    if os.path.exists(LAST_ARTICLE):
+        with open(LAST_ARTICLE, 'r') as f:
+            data = json.load(f)
+    else:
+        data = {}
+    
+    data[game] = article_url
+
+    with open(LAST_ARTICLE, 'w') as f:
+        json.dump(data, f, indent=2)

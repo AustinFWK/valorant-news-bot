@@ -1,3 +1,5 @@
 .env
+channel_config.json
+last_article.json
 __pycache__/
 *.pyc
