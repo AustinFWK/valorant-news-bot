@@ -51,7 +51,7 @@ async def getchannel(ctx, game: str):
     else:
         await ctx.send(f"No channel set for {game} updates. Use !setchannel to set one.")
 
-@setchannel.error()
+@setchannel.error
 async def setchannel_error(ctx, error):
     """Error handler for setchannel command."""
     if isinstance(error, commands.MissingPermissions):
