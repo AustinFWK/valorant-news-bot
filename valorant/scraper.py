@@ -12,6 +12,7 @@ options = Options()
 options.add_argument('--headless')                                                                                                                                                                                                                
 options.add_argument('--no-sandbox')                                                                                                                                                                                                              
 options.add_argument('--disable-dev-shm-usage')
+options.binary_location = '/usr/bin/chromium-browser'
 
 def is_youtube_link(url):
     """Check if a given URL is a YouTube link."""

@@ -3,7 +3,7 @@ import datetime
 import asyncio
 from discord.ext import commands, tasks
 from config import DISCORD_TOKEN, COMMAND_PREFIX
-from valorant.scraper import get_latest_patch_notes
+from valorant.scraper import get_latest_article_url, get_latest_patch_notes
 from valorant.formatter import smart_chunk
 from storage import get_last_article, set_channel, get_channel, set_last_article
 
@@ -116,7 +116,7 @@ async def tuesday_patch_notes_check():
 async def do_valorant_check():
     """ Shared logic for checking and posting Valorant patch notes. """
 
-    current_url = get_latest_patch_notes()
+    current_url = get_latest_article_url()
     last_url = get_last_article('valorant')
 
     if current_url == last_url:
