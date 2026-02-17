@@ -15,7 +15,7 @@ COMMAND_PREFIX = '!'
 VALORANT_NEWS_URL = 'https://playvalorant.com/en-us/news/game-updates/'
 
 # Selectors (update these if the website changes)
-ARTICLE_LINK_SELECTOR = '.sc-b988531e-0.bvEIZU.sc-d043b2-0.bZMlAb.sc-8e176a18-5.hpxXxJ.action'
+ARTICLE_LINK_SELECTOR = '[data-testid="articlefeaturedcard-component"]'
 ARTICLE_CONTENT_SELECTOR = '[data-testid="rich-text"]'
 
 # Discord limits
