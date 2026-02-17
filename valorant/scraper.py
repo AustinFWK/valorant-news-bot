@@ -47,8 +47,8 @@ def get_latest_patch_notes():
 
         try:
             # Get the article content
-            content_div = driver.find_element(By.CSS_SELECTOR, ARTICLE_CONTENT_SELECTOR)
-            text_content = content_div.text
+            content_divs = driver.find_elements(By.CSS_SELECTOR, ARTICLE_CONTENT_SELECTOR)
+            text_content = '\n\n'.join(div.text for div in content_divs)
             return text_content, article_url, 'article'
         except NoSuchElementException:
             return None, article_url, 'video'
