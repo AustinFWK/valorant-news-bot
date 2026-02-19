@@ -1,5 +1,37 @@
 from config import MAX_MESSAGE_LENGTH
 
+INCLUDED_SECTIONS={
+    'Agent Updates',
+    'Competitive Updates',
+    'Map Updates',
+}
+
+def filter_sections(text):
+    """
+    Filters the patch notes text to only include specified sections and the TLDR paragraph
+
+    """
+
+    lines = text.split('\n')
+    filtered_lines = []
+    include_current = True
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Check for section headers
+        if stripped and stripped.isupper() and len(stripped) <50:
+            section_lower = stripped.lower()
+
+            include_current = section_lower in INCLUDED_SECTIONS
+
+        # Add a line if we are in an included section
+        if include_current:
+            filtered_lines.append(line)
+    
+    return '\n'.join(filtered_lines)
+
+
 
 def smart_chunk(text, max_length=MAX_MESSAGE_LENGTH):
     """Split text at natural break points while staying under Discord's limit."""
