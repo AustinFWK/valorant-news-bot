@@ -1,9 +1,9 @@
 from config import MAX_MESSAGE_LENGTH
 
 INCLUDED_SECTIONS={
-    'Agent Updates',
-    'Competitive Updates',
-    'Map Updates',
+    'agent updates',
+    'competitive updates',
+    'map updates',
 }
 
 def filter_sections(text):
