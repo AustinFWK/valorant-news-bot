@@ -61,3 +61,29 @@ try:
     print("\n✅ URL fetcher executed successfully!")
 except Exception as e:
     print(f"\n❌ URL fetcher failed with error: {e}")
+
+
+# --- Test Formatter Output ---                                                                                        
+from valorant.formatter import smart_chunk                                                                             
+                                                                                                                         
+print("\n" + "=" * 50)
+print("Testing smart_chunk() with live HTML")
+print("=" * 50)
+
+try:
+      html_content, url, content_type = get_latest_patch_notes()
+
+      if content_type == 'article' and html_content:
+          chunks = smart_chunk(html_content)
+          print(f"  Produced {len(chunks)} chunk(s)\n")
+          for i, chunk in enumerate(chunks, 1):
+              print(f"--- Chunk {i} ---")
+              print(chunk)
+              print()
+      else:
+          print("  Skipped (video or no content)")
+
+      print("✅ Formatter executed successfully!")
+
+except Exception as e:
+      print(f"❌ Formatter failed: {e}")
