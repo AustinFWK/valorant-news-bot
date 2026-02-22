@@ -4,8 +4,6 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 
 INCLUDED_SECTIONS = {
     'agent updates',
-    'competitive updates',
-    'map updates',
 }
 
 BULLET_CHARS = ['•', '◦', '▪']
@@ -56,7 +54,7 @@ def process_list(list_node, lines, indent=0):
             lines.append(f'{prefix}{counter}. {li_text}')
             counter += 1
         else: 
-            lines.append(f'{prefix}{bullet} {li_text}')
+            lines.append(f'{prefix}{bullet } {li_text}')
 
         for nested in nested_lists:
             process_list(nested, lines, indent + 1)
