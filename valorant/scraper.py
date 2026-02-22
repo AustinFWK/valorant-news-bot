@@ -16,8 +16,9 @@ options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
 options.add_argument("--window-size=1920,1080")
 
-options.binary_location = "/usr/bin/chromium-browser"
-service = Service("/usr/bin/chromedriver")
+#commented out for testing
+#options.binary_location = "/usr/bin/chromium-browser"
+#service = Service("/usr/bin/chromedriver")
 
 def is_youtube_link(url):
     """Check if a given URL is a YouTube link."""
@@ -26,7 +27,11 @@ def is_youtube_link(url):
 
 def get_latest_patch_notes():
     """Scrape the latest patch notes from Valorant's website."""
-    driver = webdriver.Chrome(options=options, service=service)
+
+    #commented out for testing
+    #driver = webdriver.Chrome(options=options, service=service)
+
+    driver = webdriver.Chrome(options=options)
 
     try:
         # Navigate to the news page
@@ -46,10 +51,10 @@ def get_latest_patch_notes():
         driver.implicitly_wait(10)
 
         try:
-            # Get the article content
+            # Get the article content as HTML to preserve formatting
             content_divs = driver.find_elements(By.CSS_SELECTOR, ARTICLE_CONTENT_SELECTOR)
-            text_content = '\n\n'.join(div.text for div in content_divs)
-            return text_content, article_url, 'article'
+            html_content = '\n'.join(div.get_attribute('innerHTML') for div in content_divs)
+            return html_content, article_url, 'article'
         except NoSuchElementException:
             return None, article_url, 'video'
     finally:
@@ -58,7 +63,8 @@ def get_latest_patch_notes():
 
 def get_latest_article_url():
     """Get just the URL of the latest article (for checking updates)."""
-    driver = webdriver.Chrome(options=options, service=service)
+    #driver = webdriver.Chrome(options=options, service=service)
+    driver = webdriver.Chrome(options=options)
 
     try:
         driver.get(VALORANT_NEWS_URL)
