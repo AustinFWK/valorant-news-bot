@@ -6,7 +6,7 @@ INCLUDED_SECTIONS = {
     'agent updates',
 }
 
-BULLET_CHARS = ['•', '◦', '▪']
+BULLET_CHARS = ['•']
 
 def process_inline(node):
     """ Extract inline text from a node, preserving the bold formatting """
@@ -36,7 +36,7 @@ def process_list(list_node, lines, indent=0):
         if not isinstance(child, Tag) or child.name != 'li':
             continue
 
-        # Separate inline text from every nested lists within this li
+        # Separate inline text from every nested lists within this list
         inline_parts = []
         nested_lists = []
 
