@@ -16,9 +16,9 @@ options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
 options.add_argument("--window-size=1920,1080")
 
-#commented out for testing
-#options.binary_location = "/usr/bin/chromium-browser"
-#service = Service("/usr/bin/chromedriver")
+#can comment out for testing
+options.binary_location = "/usr/bin/chromium-browser"
+service = Service("/usr/bin/chromedriver")
 
 def is_youtube_link(url):
     """Check if a given URL is a YouTube link."""
@@ -28,10 +28,8 @@ def is_youtube_link(url):
 def get_latest_patch_notes():
     """Scrape the latest patch notes from Valorant's website."""
 
-    #commented out for testing
-    #driver = webdriver.Chrome(options=options, service=service)
-
-    driver = webdriver.Chrome(options=options)
+    #can comment out for testing
+    driver = webdriver.Chrome(options=options, service=service)
 
     try:
         # Navigate to the news page
@@ -63,8 +61,7 @@ def get_latest_patch_notes():
 
 def get_latest_article_url():
     """Get just the URL of the latest article (for checking updates)."""
-    #driver = webdriver.Chrome(options=options, service=service)
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(options=options, service=service)
 
     try:
         driver.get(VALORANT_NEWS_URL)
