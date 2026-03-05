@@ -1,3 +1,4 @@
+import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
@@ -16,9 +17,12 @@ options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
 options.add_argument("--window-size=1920,1080")
 
-#can comment out for testing
-options.binary_location = "/usr/bin/chromium-browser"
-service = Service("/usr/bin/chromedriver")
+# Use explicit Linux paths on server; let Selenium auto-detect on macOS/dev
+_CHROMIUM_BIN = "/usr/bin/chromium-browser"
+_CHROMEDRIVER_BIN = "/usr/bin/chromedriver"
+if os.path.exists(_CHROMIUM_BIN):
+    options.binary_location = _CHROMIUM_BIN
+service = Service(_CHROMEDRIVER_BIN) if os.path.exists(_CHROMEDRIVER_BIN) else Service()
 
 def is_youtube_link(url):
     """Check if a given URL is a YouTube link."""
