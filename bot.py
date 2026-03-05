@@ -116,7 +116,12 @@ async def tuesday_patch_notes_check():
 async def do_valorant_check():
     """ Shared logic for checking and posting Valorant patch notes. """
 
-    current_url = get_latest_article_url()
+    try:
+        current_url = get_latest_article_url()
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch latest patch notes article URL: {e}")
+        return
+    
     last_url = get_last_article('valorant')
 
     if current_url == last_url:
