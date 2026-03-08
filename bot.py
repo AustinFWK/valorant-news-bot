@@ -109,9 +109,15 @@ async def daily_check():
 @tasks.loop(minutes=15)
 async def tuesday_patch_notes_check():
     """ Frequent checks during patch notes window. """
-    if not is_patch_notes_window():
-        return
-    await do_valorant_check()
+    try:
+        if not is_patch_notes_window():
+            return
+        
+        await do_valorant_check()
+
+    except Exception as e:
+        print(f"[ERROR] Tuesday check failed: {e}")
+
 
 async def do_valorant_check():
     """ Shared logic for checking and posting Valorant patch notes. """
