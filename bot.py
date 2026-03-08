@@ -91,7 +91,7 @@ def is_patch_notes_window():
    # Get current time in EST                                                                                                                                                                                                                     
     utc_now = datetime.datetime.now(datetime.timezone.utc)           
     #change hours=-5 to hours=-4 for daylight savings time                                                                                                                                                                             
-    est_offset = datetime.timedelta(hours=-5)  # EST is UTC-5                                                                                                                                                                                     
+    est_offset = datetime.timedelta(hours=-4)  # EST is UTC-5                                                                                                                                                                                     
     est_now = utc_now + est_offset 
 
     is_tuesday = est_now.weekday() == 1  # Tuesday is 1
