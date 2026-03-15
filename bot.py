@@ -1,12 +1,11 @@
 import discord
 import datetime
-import asyncio
 from discord.ext import commands, tasks
+from zoneinfo import ZoneInfo
 from config import DISCORD_TOKEN, COMMAND_PREFIX
 from valorant.scraper import get_latest_article_url, get_latest_patch_notes
 from valorant.formatter import smart_chunk
 from storage import get_last_article, set_channel, get_channel, set_last_article
-from zoneinfo import ZoneInfo
 
 
 
@@ -22,11 +21,8 @@ async def on_ready():
     print("The bot is ready for use")
     print("------------------------")
 
-    if not daily_check.is_running():
-        daily_check.start()
-
-    if not tuesday_patch_notes_check.is_running():
-        tuesday_patch_notes_check.start()
+    if not check_for_updates.is_running():
+        check_for_updates.start()
 
 
 # --- Commands ---
@@ -91,64 +87,55 @@ async def patchnotes(ctx):
 
 # --- Background Tasks ---
 
-def is_patch_notes_window():
-    """ Check if the current time is within the patch notes posting window (Tuesdays 8 AM - 12 PM EST). """
-    now = datetime.datetime.now(ZoneInfo("America/New_York"))
-
-    is_tuesday = now.weekday() == 1  # Tuesday is 1
-    is_patch_hours = 8 <= now.hour < 12
-
-    return is_tuesday and is_patch_hours
-
-@tasks.loop(hours=24)
-async def daily_check():
-    if is_patch_notes_window():
-        return
-    
-    await do_valorant_check()
-
 @tasks.loop(minutes=15)
-async def tuesday_patch_notes_check():
-    """ Frequent checks during patch notes window. """
+async def check_for_updates():
+    """ Poll for new Valorant articles on a resource-aware schedule.
 
-    now = datetime.datetime.now()
-    print(f"[TUESDAY LOOP] Tuesday patchnotes check running at {now}")
+    Checks every 15 minutes on Tuesdays during the patch notes window (8 AM - 12 PM EST),
+    and once per day at 8 AM EST on all other days.
+    """
+    now = datetime.datetime.now(ZoneInfo("America/New_York"))
+    is_patch_window = now.weekday() == 1 and 8 <= now.hour < 12
+    is_daily_check_time = now.hour == 8 and now.minute < 15
+
+    if not is_patch_window and not is_daily_check_time:
+        return
+
+    print(f"[CHECK] Running update check at {now} (patch_window={is_patch_window})")
 
     try:
-        if not is_patch_notes_window():
-            print("[TUESDAY LOOP] Outside patch notes window")
-            return
-        
-        print("[TUESDAY LOOP] Inside patch window - checking patch notes")
-        
         await do_valorant_check()
-
     except Exception as e:
-        print(f"[ERROR] Tuesday check failed: {e}")
+        print(f"[ERROR] Update check failed: {e}")
 
 
 async def do_valorant_check():
-    """ Shared logic for checking and posting Valorant patch notes. """
+    """ Check for a new article and post it if found. """
 
     try:
         current_url = get_latest_article_url()
     except Exception as e:
-        print(f"[ERROR] Failed to fetch latest patch notes article URL: {e}")
+        print(f"[ERROR] Failed to fetch latest article URL: {e}")
         return
-    
+
     last_url = get_last_article('valorant')
 
     if current_url == last_url:
-        return # No new article
-    
-   
-    set_last_article('valorant', current_url)
+        return  # No new article
 
     if last_url is None:
-        print(f"initialized tracking with {current_url}")
-        return # First run, don't post
-    
-    text_content, article_url, content_type = get_latest_patch_notes()
+        # First run: initialize tracking without posting
+        set_last_article('valorant', current_url)
+        print(f"[INFO] Initialized tracking with {current_url}")
+        return
+
+    # New article detected — fetch content before saving URL so we can retry on failure
+    print(f"[INFO] New article detected: {current_url}")
+    try:
+        text_content, article_url, content_type = get_latest_patch_notes()
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch article content: {e}")
+        return  # Don't save URL — will retry on next cycle
 
     for guild in client.guilds:
         channel_id = get_channel(guild.id, 'valorant')
@@ -159,24 +146,24 @@ async def do_valorant_check():
         if not channel:
             continue
 
-        if content_type == 'video':
-            await channel.send(f"🔗 New Valorant video posted! : {article_url}")
-        else:
-            chunks = smart_chunk(text_content)
+        try:
+            if content_type == 'video':
+                await channel.send(f"🔗 New Valorant video posted! : {article_url}")
+            else:
+                chunks = smart_chunk(text_content)
+                for chunk in chunks:
+                    await channel.send(chunk)
+                await channel.send(f"\n\n🔗 Full article: {article_url}")
+        except Exception as e:
+            print(f"[ERROR] Failed to post to {guild.name}: {e}")
 
-            for chunk in chunks:
-                await channel.send(chunk)
-
-            await channel.send(f"\n\n🔗 Full article: {article_url}")
+    # Save URL only after posting has been attempted for all guilds
+    set_last_article('valorant', current_url)
 
 
-
-@daily_check.before_loop
-@tuesday_patch_notes_check.before_loop
-async def before_checks():
+@check_for_updates.before_loop
+async def before_check():
     await client.wait_until_ready()
-
-        
 
 
 # --- Run ---
