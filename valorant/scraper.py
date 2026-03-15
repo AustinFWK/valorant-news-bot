@@ -24,6 +24,8 @@ if os.path.exists(_CHROMIUM_BIN):
     options.binary_location = _CHROMIUM_BIN
 service = Service(_CHROMEDRIVER_BIN) if os.path.exists(_CHROMEDRIVER_BIN) else Service()
 
+
+
 def is_youtube_link(url):
     """Check if a given URL is a YouTube link."""
     return "youtube.com" in url or "youtu.be" in url
