@@ -2,7 +2,7 @@ import discord
 import datetime
 from discord.ext import commands, tasks
 from zoneinfo import ZoneInfo
-from config import DISCORD_TOKEN, COMMAND_PREFIX
+from config.config import DISCORD_TOKEN, COMMAND_PREFIX
 from valorant.scraper import get_latest_article_url, get_latest_patch_notes
 from valorant.formatter import smart_chunk
 from storage import get_last_article, set_channel, get_channel, set_last_article

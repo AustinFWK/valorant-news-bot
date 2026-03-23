@@ -1,4 +1,4 @@
-from valorant.scraper import get_latest_patch_notes, get_latest_article_url, is_youtube_link
+from scraper import get_latest_patch_notes, get_latest_article_url, is_youtube_link
 
 # --- Test URL Detection ---
 print("=" * 50)
