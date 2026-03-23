@@ -1,12 +1,13 @@
 import re
-from config import MAX_MESSAGE_LENGTH
+from config.config import MAX_MESSAGE_LENGTH
 from bs4 import BeautifulSoup, NavigableString, Tag
 
 INCLUDED_SECTIONS = {
     'agent updates',
 }
 
-BULLET_CHARS = ['•']
+BULLET_CHARS = ['•', '◦']
+SECTION_DIVIDER = '──────────────────'
 
 def process_inline(node):
     """ Extract inline text from a node, preserving the bold formatting """
@@ -29,7 +30,7 @@ def process_list(list_node, lines, indent=0):
     """ Recursively process a list (ul or ol) and its children, adding formatted lines to the output """
     ordered = list_node.name == 'ol'
     bullet = BULLET_CHARS[min(indent, len(BULLET_CHARS)-1)]
-    prefix = '  ' * indent
+    prefix = '    ' * indent
     counter = 1
 
     for child in list_node.children:
@@ -49,12 +50,13 @@ def process_list(list_node, lines, indent=0):
                 inline_parts.append(process_inline(c))
 
         li_text = re.sub(r'\s+', ' ', ''.join(inline_parts)).strip()
+        li_text = re.sub(r'(\d[\d.]*)\s*>>>\s*(\d[\d.]*)', r'**\1 → \2**', li_text)
 
         if ordered:
             lines.append(f'{prefix}{counter}. {li_text}')
             counter += 1
-        else: 
-            lines.append(f'{prefix}{bullet } {li_text}')
+        else:
+            lines.append(f'{prefix}{bullet} {li_text}')
 
         for nested in nested_lists:
             process_list(nested, lines, indent + 1)
@@ -72,13 +74,14 @@ def process_node(node, lines):
             name = child.name
 
             if name in ('h1', 'h2'):
-                text = child.get_text(strip=True).upper()
+                text = child.get_text(strip=True)
                 lines.append('')
-                lines.append(f'__**{text}**__')
+                lines.append(f'## {text}')
             elif name in ('h3', 'h4', 'h5'):
                 text = child.get_text(strip=True)
                 lines.append('')
-                lines.append(f'**{text}**')
+                lines.append(SECTION_DIVIDER)
+                lines.append(f'### {text}')
             elif name == 'p':
                 text = re.sub(r'\s+', ' ', process_inline(child)).strip()
                 if text:
@@ -104,7 +107,7 @@ def filter_sections(text):
     """
 
     Filters the patch notes text to only include specified sections and the TLDR paragraph
-    Detects section headers by the __**HEADER**__ format 
+    Detects section headers by the ## HEADER format
 
     """
 
@@ -115,15 +118,15 @@ def filter_sections(text):
     for line in lines:
         stripped = line.strip()
 
-        # Check for section headers
-        if stripped.startswith('__**') and stripped.endswith('**__'):
-            header_text = stripped[4:-4].strip().lower() # Extract text between __** and **__
+        # Check for top-level section headers (## Header)
+        if stripped.startswith('## '):
+            header_text = stripped[3:].strip().lower()
             include_current = header_text in INCLUDED_SECTIONS
 
         # Add a line if we are in an included section
         if include_current:
             filtered_lines.append(line)
-    
+
     return '\n'.join(filtered_lines)
 
 
@@ -145,7 +148,7 @@ def smart_chunk(html_content, max_length=MAX_MESSAGE_LENGTH):
             current_chunk = line
         else:
             # Start a new chunk before major headers to keep sections together
-            if line.startswith('__**') and len(current_chunk) > 500:
+            if line.startswith('## ') and len(current_chunk) > 500:
                 chunks.append(current_chunk.strip())
                 current_chunk = line
             else:

@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from config import (
+from config.config import (
     VALORANT_NEWS_URL,
     ARTICLE_LINK_SELECTOR,
     ARTICLE_CONTENT_SELECTOR
