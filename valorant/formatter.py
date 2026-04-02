@@ -26,7 +26,7 @@ def process_inline(node):
                 parts.append(process_inline(child))
     return ''.join(parts)
 
-def process_list(list_node, lines, indent=0):
+def process_list(list_node, lines, indent=0, is_agent_section=False):
     """ Recursively process a list (ul or ol) and its children, adding formatted lines to the output """
     ordered = list_node.name == 'ol'
     bullet = BULLET_CHARS[min(indent, len(BULLET_CHARS)-1)]
@@ -50,6 +50,11 @@ def process_list(list_node, lines, indent=0):
                 inline_parts.append(process_inline(c))
 
         li_text = re.sub(r'\s+', ' ', ''.join(inline_parts)).strip()
+
+        # Bold parent of initial list item (Agent name)
+        if is_agent_section and indent == 0 and li_text:
+            li_text = f"**{li_text}**"
+
         li_text = re.sub(r'(\d[\d.]*)\s*>>>\s*(\d[\d.]*)', r'**\1 → \2**', li_text)
 
         if ordered:
@@ -61,10 +66,12 @@ def process_list(list_node, lines, indent=0):
             lines.append('') #add extra linebreak after bullet points for easier reading
 
         for nested in nested_lists:
-            process_list(nested, lines, indent + 1)
+            process_list(nested, lines, indent + 1, is_agent_section=is_agent_section)
 
-def process_node(node, lines):
+def process_node(node, lines, is_agent_section=False):
     """ Recursively walk HTML nodes and append the Discord-formatted lines """
+
+    current_section_is_agent = is_agent_section
 
     for child in node.children: 
         if isinstance(child, NavigableString):
@@ -75,26 +82,38 @@ def process_node(node, lines):
         elif isinstance(child, Tag):
             name = child.name
 
-            if name in ('h1', 'h2'):
+            if name in ('h1', 'h2', 'h3', 'h4'):
+                header_text = child.get_text(strip=True).lower()
+                current_section_is_agent = 'agent updates' in header_text
                 text = child.get_text(strip=True)
                 lines.append('')
-                lines.append(f'## {text}')
-            elif name in ('h3', 'h4', 'h5'):
-                text = child.get_text(strip=True)
-                lines.append('')
-                lines.append(SECTION_DIVIDER)
-                lines.append(f'### {text}')
+                if name in ('h1', 'h2'):
+                    lines.append(f'## {text}')
+                else:
+                    lines.append(SECTION_DIVIDER)
+                    lines.append(f'## {text}')
+
+            # testing if this section is necessary
+            #elif name in ('h3', 'h4', 'h5'):
+                #text = child.get_text(strip=True)
+                #lines.append('')
+                #lines.append(SECTION_DIVIDER)
+                #lines.append(f'### {text}')
+
             elif name == 'p':
                 text = re.sub(r'\s+', ' ', process_inline(child)).strip()
                 if text:
                     lines.append(text)
+
             elif name in ('ul', 'ol'):
-                process_list(child, lines, indent=0)
+                process_list(child, lines, indent=0, is_agent_section=current_section_is_agent)
+
             elif name == 'br':
                 lines.append('')
+
             else:
                 # div, span, section, article, etc. — recurse
-                process_node(child, lines)
+                process_node(child, lines, is_agent_section=current_section_is_agent)
             
 def html_to_discord_markdown(html):
     """ Convert HTML patch notes to discord markdown """
