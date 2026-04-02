@@ -30,7 +30,7 @@ def process_list(list_node, lines, indent=0):
     """ Recursively process a list (ul or ol) and its children, adding formatted lines to the output """
     ordered = list_node.name == 'ol'
     bullet = BULLET_CHARS[min(indent, len(BULLET_CHARS)-1)]
-    prefix = '    ' * indent
+    prefix = '          ' * indent
     counter = 1
 
     for child in list_node.children:
@@ -54,9 +54,11 @@ def process_list(list_node, lines, indent=0):
 
         if ordered:
             lines.append(f'{prefix}{counter}. {li_text}')
+            lines.append('') #add extra linebreak after bullet points for easier reading
             counter += 1
         else:
             lines.append(f'{prefix}{bullet} {li_text}')
+            lines.append('') #add extra linebreak after bullet points for easier reading
 
         for nested in nested_lists:
             process_list(nested, lines, indent + 1)
