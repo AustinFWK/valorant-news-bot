@@ -31,6 +31,28 @@ def is_youtube_link(url):
     return "youtube.com" in url or "youtu.be" in url
 
 
+def get_patch_notes_from_url(article_url):
+    """Scrape patch notes from a specific Valorant article URL."""
+
+    if is_youtube_link(article_url):
+        return None, article_url, 'video'
+
+    driver = webdriver.Chrome(options=options, service=service)
+
+    try:
+        driver.get(article_url)
+        driver.implicitly_wait(10)
+
+        try:
+            content_divs = driver.find_elements(By.CSS_SELECTOR, ARTICLE_CONTENT_SELECTOR)
+            html_content = '\n'.join(div.get_attribute('innerHTML') for div in content_divs)
+            return html_content, article_url, 'article'
+        except NoSuchElementException:
+            return None, article_url, 'video'
+    finally:
+        driver.quit()
+
+
 def get_latest_patch_notes():
     """Scrape the latest patch notes from Valorant's website."""
 

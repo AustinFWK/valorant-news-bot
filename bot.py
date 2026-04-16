@@ -3,7 +3,7 @@ import datetime
 from discord.ext import commands, tasks
 from zoneinfo import ZoneInfo
 from config.config import DISCORD_TOKEN, COMMAND_PREFIX
-from valorant.scraper import get_latest_article_url, get_latest_patch_notes
+from valorant.scraper import get_latest_article_url, get_latest_patch_notes, get_patch_notes_from_url
 from valorant.formatter import smart_chunk
 from storage import get_last_article, set_channel, get_channel, set_last_article
 
@@ -30,7 +30,7 @@ async def on_ready():
 @client.command()
 async def hello(ctx):
     """Simple test command."""
-    await ctx.send("hello user")
+    await ctx.send(f"hello *user*")
 
 @client.command()
 @commands.has_permissions(administrator=True)
@@ -44,7 +44,7 @@ async def setchannel(ctx, game: str):
         return
     
     set_channel(ctx.guild.id, game, ctx.channel.id)
-    await ctx.send(f"Channel set for {game} updates.")
+    await ctx.send(f"This channel has been set to receive {game} updates.")
 
 @client.command()
 async def getchannel(ctx, game: str):
@@ -65,11 +65,14 @@ async def setchannel_error(ctx, error):
 
 
 @client.command()
-async def patchnotes(ctx):
-    """Fetch and display the latest Valorant patch notes."""
+async def patchnotes(ctx, url=None):
+    """Fetch and display Valorant patch notes. Optionally pass a specific article URL."""
 
     try:
-        text_content, article_url, content_type = get_latest_patch_notes()
+        if url:
+            text_content, article_url, content_type = get_patch_notes_from_url(url)
+        else:
+            text_content, article_url, content_type = get_latest_patch_notes()
 
         if content_type == 'video':
             await ctx.send(f"🔗 Latest video: {article_url}")
