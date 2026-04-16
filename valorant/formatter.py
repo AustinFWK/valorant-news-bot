@@ -10,7 +10,7 @@ BULLET_CHARS = ['•', '◦']
 SECTION_DIVIDER = '──────────────────'
 
 def process_inline(node):
-    """ Extract inline text from a node, preserving the bold formatting """
+    """ Extract inline text from a node, preserving the bold and italic formatting """
 
     parts = []
 
@@ -18,12 +18,18 @@ def process_inline(node):
         if isinstance(child, NavigableString):
             parts.append(str(child))
         elif isinstance(child, Tag):
+
             if child.name in ('strong', 'b'):
                 parts.append(f'**{process_inline(child)}**')
+
+            elif child.name == ('em', 'i'):
+                parts.append(f'*{process_inline(child)}*')
+
             elif child.name == 'br':
                 parts.append('\n')
             else:
                 parts.append(process_inline(child))
+
     return ''.join(parts)
 
 def process_list(list_node, lines, indent=0, is_agent_section=False):
@@ -93,17 +99,19 @@ def process_node(node, lines, is_agent_section=False):
                     lines.append(SECTION_DIVIDER)
                     lines.append(f'## {text}')
 
-            # testing if this section is necessary
-            #elif name in ('h3', 'h4', 'h5'):
-                #text = child.get_text(strip=True)
-                #lines.append('')
-                #lines.append(SECTION_DIVIDER)
-                #lines.append(f'### {text}')
-
             elif name == 'p':
-                text = re.sub(r'\s+', ' ', process_inline(child)).strip()
+
+                # Use process_inline here instead of get_text() to preserve tags
+                text = process_inline(child).strip()
+                # Clean up multiple spaces that might result from tag processing
+                text = re.sub(r'\s+', ' ', text)
+
+                #text = re.sub(r'\s+', ' ', process_inline(child)).strip()
                 if text:
+                    # add line breaks before and after text
+                    lines.append('')
                     lines.append(text)
+                    lines.append('')
 
             elif name in ('ul', 'ol'):
                 process_list(child, lines, indent=0, is_agent_section=current_section_is_agent)
