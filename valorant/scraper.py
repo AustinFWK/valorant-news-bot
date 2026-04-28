@@ -10,19 +10,21 @@ from config.config import (
     ARTICLE_CONTENT_SELECTOR
 )
 
-options = Options()
-options.add_argument("--headless=new")
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--disable-gpu")
-options.add_argument("--window-size=1920,1080")
-
-# Use explicit Linux paths on server; let Selenium auto-detect on macOS/dev
 _CHROMIUM_BIN = "/usr/bin/chromium-browser"
 _CHROMEDRIVER_BIN = "/usr/bin/chromedriver"
-if os.path.exists(_CHROMIUM_BIN):
-    options.binary_location = _CHROMIUM_BIN
-service = Service(_CHROMEDRIVER_BIN) if os.path.exists(_CHROMEDRIVER_BIN) else Service()
+
+
+def _make_driver():
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
+    if os.path.exists(_CHROMIUM_BIN):
+        options.binary_location = _CHROMIUM_BIN
+    service = Service(_CHROMEDRIVER_BIN) if os.path.exists(_CHROMEDRIVER_BIN) else Service()
+    return webdriver.Chrome(options=options, service=service)
 
 
 
@@ -37,7 +39,7 @@ def get_patch_notes_from_url(article_url):
     if is_youtube_link(article_url):
         return None, article_url, 'video'
 
-    driver = webdriver.Chrome(options=options, service=service)
+    driver = _make_driver()
 
     try:
         driver.get(article_url)
@@ -57,7 +59,7 @@ def get_latest_patch_notes():
     """Scrape the latest patch notes from Valorant's website."""
 
     #can comment out for testing
-    driver = webdriver.Chrome(options=options, service=service)
+    driver = _make_driver()
 
     try:
         # Navigate to the news page
@@ -89,7 +91,7 @@ def get_latest_patch_notes():
 
 def get_latest_article_url():
     """Get just the URL of the latest article (for checking updates)."""
-    driver = webdriver.Chrome(options=options, service=service)
+    driver = _make_driver()
 
     try:
         driver.get(VALORANT_NEWS_URL)
