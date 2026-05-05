@@ -29,6 +29,17 @@ def set_channel(guild_id, game, channel_id):
     config[guild_key][game] = channel_id
     save_config(config)
 
+def clear_channel(guild_id, game):
+    """Clear the channel ID for a specific game in a guild."""
+    config = load_config()
+    guild_key = str(guild_id)
+
+    if guild_key in config and game in config[guild_key]:
+        del config[guild_key][game]
+        if not config[guild_key]:  # If no games left for the guild, remove the guild entry
+            del config[guild_key]
+        save_config(config)
+
 def get_channel(guild_id, game):
     """Get the channel ID for a specific game in a guild."""
     config = load_config()

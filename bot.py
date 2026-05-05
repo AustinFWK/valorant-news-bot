@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from config.config import DISCORD_TOKEN, COMMAND_PREFIX
 from valorant.scraper import get_latest_article_url, get_latest_patch_notes, get_patch_notes_from_url
 from valorant.formatter import smart_chunk
-from storage import get_last_article, set_channel, get_channel, set_last_article
+from storage import clear_channel, get_last_article, set_channel, get_channel, set_last_article
 
 
 
@@ -37,6 +37,7 @@ async def hello(ctx):
 async def setchannel(ctx, game: str):
     """Set the current channel to receive updates for a specific game."""
     valid_games = ['valorant']  # Extendable for future games
+    channel_name = ctx.channel.name
 
     game = game.lower()
     if game not in valid_games:
@@ -44,7 +45,22 @@ async def setchannel(ctx, game: str):
         return
     
     set_channel(ctx.guild.id, game, ctx.channel.id)
-    await ctx.send(f"This channel has been set to receive {game} updates.")
+    await ctx.send(f"{channel_name} will now receive {game} updates.")
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def clearchannel(ctx, game: str):
+    """Clear the channel set for a specific game's updates."""
+    valid_games = ['valorant']  # Extendable for future games
+    channel_name = ctx.channel.name
+
+    game = game.lower()
+    if game not in valid_games:
+        await ctx.send(f"Invalid game. Valid options are: {', '.join(valid_games)}")
+        return
+    
+    clear_channel(ctx.guild.id, game)
+    await ctx.send(f"Removed {game} updates from {channel_name}.")
 
 @client.command()
 async def getchannel(ctx, game: str):
