@@ -1,3 +1,4 @@
+import aiohttp.web
 import discord
 import datetime
 from discord.ext import commands, tasks
@@ -13,6 +14,19 @@ from storage import clear_channel, get_last_article, set_channel, get_channel, s
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 
+# --- Endpoints --- 
+async def stats_handler(_request):
+    data = {
+        "servers": len(client.guilds),
+        "members": sum(guild.member_count for guild in client.guilds),
+    }
+
+    return aiohttp.web.json_response(data)
+
+app = aiohttp.web.Application()
+app.router.add_get('/stats', stats_handler)
+
+
 
 # --- Events ---
 
@@ -20,6 +34,12 @@ client = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 async def on_ready():
     print("The bot is ready for use")
     print("------------------------")
+
+    runner = aiohttp.web.AppRunner(app)
+    await runner.setup()
+    site = aiohttp.web.TCPSite(runner, '0.0.0.0', 8080)
+    await site.start()
+    print("HTTP server started on port 8080")
 
     if not check_for_updates.is_running():
         check_for_updates.start()
