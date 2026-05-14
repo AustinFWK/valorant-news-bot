@@ -16,12 +16,18 @@ client = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 
 # --- Endpoints --- 
 async def stats_handler(_request):
+    Allowed_Origins = ["http://localhost:5173", "https://patchyonline.xyz/"]
+    origin = _request.headers.get('Origin', "")
+    allowed = origin if origin in Allowed_Origins else Allowed_Origins[0]
+
     data = {
         "servers": len(client.guilds),
         "members": sum(guild.member_count for guild in client.guilds),
     }
 
-    return aiohttp.web.json_response(data)
+    return aiohttp.web.json_response(data, headers={
+        "Access-Control-Allow-Origin": allowed,
+    })
 
 app = aiohttp.web.Application()
 app.router.add_get('/stats', stats_handler)
