@@ -16,7 +16,7 @@ client = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 
 # --- Endpoints --- 
 async def stats_handler(_request):
-    Allowed_Origins = ["http://localhost:5173", "https://patchyonline.xyz/"]
+    Allowed_Origins = ["http://localhost:5173", "https://patchyonline.xyz"]
     origin = _request.headers.get('Origin', "")
     allowed = origin if origin in Allowed_Origins else Allowed_Origins[0]
 
