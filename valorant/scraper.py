@@ -10,7 +10,7 @@ from config.config import (
     ARTICLE_CONTENT_SELECTOR
 )
 
-_CHROMIUM_BIN = "/usr/bin/chromium-browser"
+_CHROMIUM_BIN = "/usr/bin/chromium"
 _CHROMEDRIVER_BIN = "/usr/bin/chromedriver"
 
 
