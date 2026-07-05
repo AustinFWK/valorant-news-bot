@@ -1,5 +1,5 @@
 import pytest
-import db
+from api.db import db
 
 
 @pytest.fixture(autouse=True)

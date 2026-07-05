@@ -66,7 +66,7 @@ def get_channel(guild_id, game):
             WHERE guild_id = ? AND game = ?
             """,
             (str(guild_id), game)
-        ).fetchone
+        ).fetchone()
         return int(row["channel_id"]) if row else None
     finally:
         conn.close()
