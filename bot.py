@@ -6,13 +6,13 @@ from zoneinfo import ZoneInfo
 from config.config import DISCORD_TOKEN, COMMAND_PREFIX
 from valorant.scraper import get_latest_article_url, get_latest_patch_notes, get_patch_notes_from_url
 from valorant.formatter import smart_chunk
-from storage import clear_channel, get_last_article, set_channel, get_channel, set_last_article
-
+from api.db import db
 
 
 # Bot setup
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
+db.init_db()
 
 # --- Endpoints --- 
 async def stats_handler(_request):
@@ -58,6 +58,7 @@ async def hello(ctx):
     """Simple test command."""
     await ctx.send(f"hello *user*")
 
+
 @client.command()
 @commands.has_permissions(administrator=True)
 async def setchannel(ctx, game: str):
@@ -70,8 +71,9 @@ async def setchannel(ctx, game: str):
         await ctx.send(f"Invalid game. Valid options are: {', '.join(valid_games)}")
         return
     
-    set_channel(ctx.guild.id, game, ctx.channel.id)
+    db.set_channel(ctx.guild.id, game, ctx.channel.id)
     await ctx.send(f"{channel_name} will now receive {game} updates.")
+
 
 @client.command()
 @commands.has_permissions(administrator=True)
@@ -85,14 +87,15 @@ async def clearchannel(ctx, game: str):
         await ctx.send(f"Invalid game. Valid options are: {', '.join(valid_games)}")
         return
     
-    clear_channel(ctx.guild.id, game)
+    db.clear_channel(ctx.guild.id, game)
     await ctx.send(f"Removed {game} updates from {channel_name}.")
+
 
 @client.command()
 async def getchannel(ctx, game: str):
     """Get the channel set for a specific game's updates"""
     game = game.lower()
-    channel_id = get_channel(ctx.guild.id, game)
+    channel_id = db.get_channel(ctx.guild.id, game)
 
     if channel_id:
         await ctx.send(f"The channel for {game} updates is <#{channel_id}>")
@@ -163,14 +166,14 @@ async def do_valorant_check():
         print(f"[ERROR] Failed to fetch latest article URL: {e}")
         return
 
-    last_url = get_last_article('valorant')
+    last_url = db.get_last_article('valorant')
 
     if current_url == last_url:
         return  # No new article
 
     if last_url is None:
         # First run: initialize tracking without posting
-        set_last_article('valorant', current_url)
+        db.set_last_article('valorant', current_url)
         print(f"[INFO] Initialized tracking with {current_url}")
         return
 
@@ -183,7 +186,7 @@ async def do_valorant_check():
         return  # Don't save URL — will retry on next cycle
 
     for guild in client.guilds:
-        channel_id = get_channel(guild.id, 'valorant')
+        channel_id = db.get_channel(guild.id, 'valorant')
         if channel_id is None:
             continue
 
@@ -203,7 +206,7 @@ async def do_valorant_check():
             print(f"[ERROR] Failed to post to {guild.name}: {e}")
 
     # Save URL only after posting has been attempted for all guilds
-    set_last_article('valorant', current_url)
+    db.set_last_article('valorant', current_url)
 
 
 @check_for_updates.before_loop
